@@ -1,6 +1,8 @@
 <template>
   <div class="board">
     <div class="board__wrap">
+      <h3>{{ score }}</h3>
+      <p>Best score: {{ bestScore }}</p>
       <div class="board__num">
         <template v-for="elem in initialLayout" :key="elem">
           <div
@@ -10,33 +12,23 @@
             {{ elem }}
           </div>
         </template>
-        <!-- <div class="board__num_empty-num" ref="emptyElem"></div> -->
       </div>
     </div>
   </div>
 </template>
 <script lang="ts">
 import { defineComponent } from "vue";
-
-interface ICoord {
-  x: number;
-  y: number;
-}
-
-interface IZeroEnvironment {
-  north: ICoord;
-  east: ICoord;
-  south: ICoord;
-  west: ICoord;
-}
+import { ICoord, IZeroEnvironment } from "@/types";
 
 export default defineComponent({
   name: "BoardNum",
   data() {
     return {
+      bestScore: localStorage.getItem("score") ?? "0",
+      score: 0,
       zeroPosInit: {
-        x: 2,
-        y: 2,
+        x: 3,
+        y: 3,
       },
       initialLayout: [] as number[],
     };
@@ -44,20 +36,42 @@ export default defineComponent({
   methods: {
     moveNum(num: number) {
       const { coord, zeroEnvironment } = this.gettingZeroPosition(num);
+      let isZeroZero = false;
 
       Object.values(zeroEnvironment).forEach((el: ICoord) => {
+        const elArr = Object.values(el);
         const coordArr = Object.values(coord);
 
-        // доделать фильтраицию. Нужно вернуть один массив координат нажатой, свободной кнопки
-        const filtered = Object.values(el).filter((el) =>
-          coordArr.includes(el)
+        // Filtering of all available numbers to change the position. The number selected by the user is returned
+        const choosenClickELem = elArr.filter(
+          (value, index) => value === coordArr[index]
         );
-        if (filtered.length === 2) {
-          console.log(el);
-        }
-      });
 
-      // console.log(zeroEnvironment, coord);
+        if (choosenClickELem.length !== 2) return;
+
+        if (isZeroZero === false) {
+          const zeroZero = choosenClickELem.every(
+            (el: number, i: number, arr: number[]) =>
+              i === 0 || (el === 0 && arr[i - 1] === 0)
+          );
+
+          this.score++;
+
+          if (zeroZero) {
+            isZeroZero = zeroZero;
+            return;
+          }
+        }
+
+        const posNum = this.initialLayout.indexOf(num);
+        const posZero = this.initialLayout.indexOf(0);
+
+        this.zeroPosInit.x = el.x;
+        this.zeroPosInit.y = el.y;
+
+        this.initialLayout[posNum] = 0;
+        this.initialLayout[posZero] = num;
+      });
     },
     gettingZeroPosition(num: number) {
       const { preparedArray, coord } = this.preparingArray(num);
@@ -85,6 +99,12 @@ export default defineComponent({
         },
       };
 
+      // north
+      if (this.zeroPosInit.y - 1 >= 0) {
+        zeroEnvironment.north.y = this.zeroPosInit.y - 1;
+        zeroEnvironment.north.x = this.zeroPosInit.x;
+      }
+
       // east
       if (preparedArray.length - 1 >= this.zeroPosInit.x + 1) {
         zeroEnvironment.east.x = this.zeroPosInit.x + 1;
@@ -101,12 +121,6 @@ export default defineComponent({
       if (this.zeroPosInit.x - 1 >= 0) {
         zeroEnvironment.west.x = this.zeroPosInit.x - 1;
         zeroEnvironment.west.y = this.zeroPosInit.y;
-      }
-
-      // north
-      if (this.zeroPosInit.y - 1 >= 0) {
-        zeroEnvironment.north.y = this.zeroPosInit.y - 1;
-        zeroEnvironment.north.x = this.zeroPosInit.x;
       }
 
       return { coord, zeroEnvironment };
@@ -154,6 +168,23 @@ export default defineComponent({
       }
     },
   },
+  watch: {
+    initialLayout: {
+      handler(val) {
+        const result = val.every(
+          (el: number, i: number, arr: number[]) =>
+            i === 15 || i === 0 || el >= arr[i - 1]
+        );
+
+        if (result) {
+          alert("Game complete");
+          localStorage.setItem("score", JSON.stringify(this.score));
+          this.score = 0;
+        }
+      },
+      deep: true,
+    },
+  },
   mounted() {
     this.$nextTick(() => {
       this.genInitialLayout();
@@ -164,6 +195,7 @@ export default defineComponent({
 <style lang="scss">
 .board {
   height: 100%;
+  position: relative;
 }
 
 .board__wrap {
@@ -171,6 +203,13 @@ export default defineComponent({
   align-items: center;
   height: 100%;
   justify-content: center;
+  flex-direction: column;
+}
+
+.board__wrap h3 {
+  top: 5vh;
+  position: absolute;
+  font-size: 30px;
 }
 
 .board__num {

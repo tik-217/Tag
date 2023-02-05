@@ -4,7 +4,7 @@
 
 <script lang="ts">
 import { defineComponent } from "vue";
-import BoardNum from "./components/BoardNum.vue";
+import BoardNum from "@/components/BoardNum.vue";
 
 export default defineComponent({
   name: "App",
