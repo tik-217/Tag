@@ -255,6 +255,9 @@ export default defineComponent({
       margin: 10px;
       user-select: none;
       cursor: pointer;
+
+      -webkit-appearance: none;
+      appearance: none;
     }
 
     .board__num_empty-num {
