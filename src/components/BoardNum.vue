@@ -13,6 +13,8 @@
           </div>
         </template>
       </div>
+      <button @click="collect">Собрать</button>
+      <button @click="mixNum" v-if="assembleQuickly">Размешать</button>
     </div>
   </div>
 </template>
@@ -25,6 +27,7 @@ export default defineComponent({
   data() {
     return {
       bestScore: localStorage.getItem("score") ?? "0",
+      assembleQuickly: false,
       score: 0,
       zeroPosInit: {
         x: 3,
@@ -34,6 +37,19 @@ export default defineComponent({
     };
   },
   methods: {
+    mixNum() {
+      this.genInitialLayout();
+      this.assembleQuickly = false;
+    },
+    collect() {
+      const zero = this.initialLayout.indexOf(0);
+
+      this.initialLayout.splice(zero, 1);
+      this.initialLayout.sort((a, b) => a - b);
+      this.initialLayout.push(0);
+
+      this.assembleQuickly = true;
+    },
     moveNum(num: number) {
       const { coord, zeroEnvironment } = this.gettingZeroPosition(num);
       let isZeroZero = false;
@@ -153,6 +169,8 @@ export default defineComponent({
       return { preparedArray, coord };
     },
     genInitialLayout() {
+      this.initialLayout = [];
+
       for (let i = 0; i <= 14; i++) {
         this.genRandom();
       }
@@ -177,8 +195,14 @@ export default defineComponent({
         );
 
         if (result) {
-          alert("Game complete");
-          localStorage.setItem("score", JSON.stringify(this.score));
+          setTimeout(() => {
+            alert("Game complete");
+          }, 100);
+
+          if (!this.assembleQuickly) {
+            localStorage.setItem("score", JSON.stringify(this.score));
+          }
+
           this.score = 0;
         }
       },
@@ -195,7 +219,6 @@ export default defineComponent({
 <style lang="scss">
 .board {
   height: 100%;
-  position: relative;
 }
 
 .board__wrap {
@@ -204,43 +227,116 @@ export default defineComponent({
   height: 100%;
   justify-content: center;
   flex-direction: column;
+
+  h3 {
+    font-size: 30px;
+  }
+
+  .board__num {
+    background: #745;
+    box-shadow: rgb(119 68 85) 0px 50px 100px -20px,
+      rgb(119 68 85) 0px 30px 60px -30px;
+    padding: 10px;
+    border-radius: 15px;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+
+    div {
+      height: 100px;
+      width: 100px;
+      background: #fff;
+      display: flex;
+
+      align-items: center;
+      justify-content: center;
+      font-size: 30px;
+      border-radius: 10px;
+
+      margin: 10px;
+      user-select: none;
+      cursor: pointer;
+    }
+
+    .board__num_empty-num {
+      background: none;
+      cursor: auto;
+      color: transparent;
+    }
+  }
+
+  button {
+    padding: 10px 20px;
+    border-radius: 15px;
+    border: none;
+    margin-top: 20px;
+    background: white;
+    font-size: 13px;
+    color: #925368;
+    cursor: pointer;
+    font-weight: 600;
+    border: 2px solid #925368;
+    box-shadow: 0 14px 28px rgb(119 68 85 / 36%), 0 10px 10px rgb(0 0 0 / 2%);
+  }
 }
 
-.board__wrap h3 {
-  top: 5vh;
-  position: absolute;
-  font-size: 30px;
+@media screen and (max-height: 730px) {
+  .board__wrap .board__num {
+    div {
+      height: 80px;
+      width: 80px;
+      margin: 6px;
+    }
+  }
 }
 
-.board__num {
-  background: #745;
-  box-shadow: rgb(119 68 85) 0px 50px 100px -20px,
-    rgb(119 68 85) 0px 30px 60px -30px;
-  padding: 10px;
-  border-radius: 15px;
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr 1fr;
+@media screen and (max-height: 600px) {
+  .board__wrap .board__num {
+    padding: 8px;
+    div {
+      height: 50px;
+      width: 50px;
+      margin: 5px;
+      font-size: 25px;
+    }
+  }
 }
 
-.board__num div {
-  height: 100px;
-  width: 100px;
-  background: #fff;
-  display: flex;
-
-  align-items: center;
-  justify-content: center;
-  font-size: 30px;
-  border-radius: 10px;
-
-  margin: 10px;
-  user-select: none;
-  cursor: pointer;
+@media screen and (max-width: 600px) {
+  .board__wrap .board__num {
+    padding: 8px;
+    div {
+      height: 80px;
+      width: 80px;
+      margin: 8px;
+    }
+  }
 }
 
-.board .board__num_empty-num {
-  background: none;
-  cursor: auto;
-  color: transparent;
+@media screen and (max-width: 500px) {
+  .board__wrap .board__num {
+    div {
+      margin: 6px;
+    }
+  }
+}
+
+@media screen and (max-width: 450px) {
+  .board__wrap .board__num {
+    div {
+      height: 60px;
+      width: 60px;
+      margin: 5px;
+      font-size: 25px;
+    }
+  }
+}
+
+@media screen and (max-width: 350px) {
+  .board__wrap .board__num {
+    div {
+      height: 55px;
+      width: 55px;
+    }
+  }
 }
 </style>
