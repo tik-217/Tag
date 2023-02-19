@@ -40,6 +40,12 @@ export default defineComponent({
     mixNum() {
       this.genInitialLayout();
       this.assembleQuickly = false;
+      this.score = 0;
+
+      this.zeroPosInit = {
+        x: 3,
+        y: 3,
+      };
     },
     collect() {
       const zero = this.initialLayout.indexOf(0);
@@ -139,6 +145,14 @@ export default defineComponent({
         zeroEnvironment.west.y = this.zeroPosInit.y;
       }
 
+      if (this.zeroPosInit.x === 3 && this.zeroPosInit.y === 3) {
+        zeroEnvironment.east.x = -1;
+        zeroEnvironment.east.y = -1;
+
+        zeroEnvironment.south.x = -1;
+        zeroEnvironment.south.y = -1;
+      }
+
       return { coord, zeroEnvironment };
     },
     preparingArray(num: number) {
@@ -185,6 +199,53 @@ export default defineComponent({
         this.initialLayout.push(randomNum);
       }
     },
+    keyboardControl(event: KeyboardEvent) {
+      if (event.code === "ArrowUp" || event.code === "KeyW") {
+        const posNumIndex = this.initialLayout.findIndex((el) => el === 0) + 4;
+        const posNum = this.initialLayout[posNumIndex];
+
+        if (posNumIndex > 15) return;
+
+        this.moveNum(posNum);
+      }
+      if (event.code === "ArrowDown" || event.code === "KeyS") {
+        const posNumIndex = this.initialLayout.findIndex((el) => el === 0) - 4;
+        const posNum = this.initialLayout[posNumIndex];
+
+        if (posNumIndex < 0) return;
+
+        this.moveNum(posNum);
+      }
+      if (event.code === "ArrowLeft" || event.code === "KeyA") {
+        const posNumIndex = this.initialLayout.findIndex((el) => el === 0) + 1;
+        const posNum = this.initialLayout[posNumIndex];
+
+        if (
+          posNumIndex < 0 ||
+          posNumIndex === 4 ||
+          posNumIndex === 8 ||
+          posNumIndex === 12 ||
+          posNumIndex >= 16
+        )
+          return;
+
+        this.moveNum(posNum);
+      }
+      if (event.code === "ArrowRight" || event.code === "KeyD") {
+        const posNumIndex = this.initialLayout.findIndex((el) => el === 0) - 1;
+        const posNum = this.initialLayout[posNumIndex];
+
+        if (
+          posNumIndex < 0 ||
+          posNumIndex === 3 ||
+          posNumIndex === 7 ||
+          posNumIndex === 11
+        )
+          return;
+
+        this.moveNum(posNum);
+      }
+    },
   },
   watch: {
     initialLayout: {
@@ -213,6 +274,12 @@ export default defineComponent({
     this.$nextTick(() => {
       this.genInitialLayout();
     });
+  },
+  created() {
+    document.addEventListener("keydown", this.keyboardControl);
+  },
+  beforeUnmount() {
+    document.removeEventListener("keydown", this.keyboardControl);
   },
 });
 </script>
